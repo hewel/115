@@ -1,4 +1,6 @@
 import Store from './store'
+import { toast } from './toast'
+import { modal } from './modal'
 
 class Core {
   constructor () {
@@ -6,17 +8,19 @@ class Core {
   }
 
   httpSend ({ url, options }, resolve, reject) {
-    fetch(url, options).then((response) => {
-      if (response.ok) {
-        response.json().then((data) => {
-          resolve(data)
-        })
-      } else {
-        reject(response)
-      }
-    }).catch((err) => {
-      reject(err)
-    })
+    fetch(url, options)
+      .then((response) => {
+        if (response.ok) {
+          response.json().then((data) => {
+            resolve(data)
+          })
+        } else {
+          reject(response)
+        }
+      })
+      .catch((err) => {
+        reject(err)
+      })
   }
 
   getConfigData (key = null) {
@@ -24,20 +28,34 @@ class Core {
   }
 
   objectToQueryString (obj) {
-    return Object.keys(obj).map((key) => {
-      return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`
-    }).join('&')
+    return Object.keys(obj)
+      .map((key) => {
+        return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`
+      })
+      .join('&')
   }
 
-  sendToBackground (method, data, callback) {
-    chrome.runtime.sendMessage({
-      method,
-      data
-    }, callback)
+  async sendToBackground (method, data) {
+    chrome.runtime.sendMessage(
+      {
+        method,
+        data
+      },
+      (success) => {
+        if (success) {
+          return success
+        } else {
+          throw new Error('error')
+        }
+      }
+    )
   }
 
   showToast (message, type) {
-    window.postMessage({ type: 'showToast', data: { message, type } }, location.origin)
+    window.postMessage(
+      { type: 'showToast', data: { message, type } },
+      location.origin
+    )
   }
 
   getHashParameter (name) {
@@ -77,21 +95,27 @@ class Core {
     if (type === 'RPC') {
       return headerOption
     } else if (type === 'aria2Cmd') {
-      return headerOption.map(item => `--header ${JSON.stringify(item)}`).join(' ')
+      return headerOption
+        .map((item) => `--header ${JSON.stringify(item)}`)
+        .join(' ')
     } else if (type === 'aria2c') {
-      return headerOption.map(item => ` header=${item}`).join('\n')
+      return headerOption.map((item) => ` header=${item}`).join('\n')
     } else if (type === 'idm') {
-      return headerOption.map((item) => {
-        const headers = item.split(': ')
-        return `${headers[0].toLowerCase()}: ${headers[1]}`
-      }).join('\r\n')
+      return headerOption
+        .map((item) => {
+          const headers = item.split(': ')
+          return `${headers[0].toLowerCase()}: ${headers[1]}`
+        })
+        .join('\r\n')
     }
   }
 
   // 解析 RPC地址 返回验证数据 和地址
   parseURL (url) {
     const parseURL = new URL(url)
-    let authStr = parseURL.username ? `${parseURL.username}:${decodeURI(parseURL.password)}` : null
+    let authStr = parseURL.username
+      ? `${parseURL.username}:${decodeURI(parseURL.password)}`
+      : null
     if (authStr) {
       if (!authStr.includes('token:')) {
         authStr = `Basic ${btoa(authStr)}`
@@ -134,13 +158,17 @@ class Core {
       params: []
     }
     const { authStr, path } = this.parseURL(rpcPath)
-    this.sendToBackground('rpcVersion', this.generateParameter(authStr, path, data), (version) => {
-      if (version) {
-        element.innerText = `Aria2版本为: ${version}`
-      } else {
-        element.innerText = '错误,请查看是否开启Aria2'
+    this.sendToBackground(
+      'rpcVersion',
+      this.generateParameter(authStr, path, data),
+      (version) => {
+        if (version) {
+          element.innerText = `Aria2版本为: ${version}`
+        } else {
+          element.innerText = '错误,请查看是否开启Aria2'
+        }
       }
-    })
+    )
   }
 
   copyText (text) {
@@ -186,7 +214,8 @@ class Core {
         method: 'aria2.addUri',
         id: new Date().getTime(),
         params: [
-          [file.link], {
+          [file.link],
+          {
             out: file.name,
             header: this.getHeader()
           }
@@ -195,9 +224,9 @@ class Core {
       const sha1Check = this.getConfigData('sha1Check')
       const rpcOption = rpcData.params[1]
       const dir = this.getConfigData('downloadPath')
-      if (dir) {
-        rpcOption.dir = dir
-      }
+      // if (dir) {
+      //   rpcOption.dir = dir
+      // }
       if (sha1Check) {
         rpcOption.checksum = `sha-1=${file.sha1}`
       }
@@ -206,13 +235,33 @@ class Core {
           rpcOption[key] = options[key]
         }
       }
-      this.sendToBackground('rpcData', this.generateParameter(authStr, path, rpcData), (success) => {
-        if (success) {
-          this.showToast('下载成功!赶紧去看看吧~', 'inf')
-        } else {
-          this.showToast('下载失败!是不是没有开启Aria2?', 'err')
-        }
-      })
+      modal
+        .fire({
+          title: '请输入下载地址',
+          input: 'text',
+          inputValue: dir
+        })
+        .then(({ value, isConfirmed }) => {
+          if (value && isConfirmed) {
+            rpcOption.dir = value
+            this.sendToBackground(
+              'rpcData',
+              this.generateParameter(authStr, path, rpcData)
+            )
+              .then(() => {
+                toast.fire({
+                  titleText: '下载成功!赶紧去看看吧~',
+                  icon: 'info'
+                })
+              })
+              .catch(() => {
+                toast.fire({
+                  titleText: '下载失败!是不是没有开启Aria2?',
+                  icon: 'error'
+                })
+              })
+          }
+        })
     })
   }
 
@@ -228,8 +277,14 @@ class Core {
       if (ssl) {
         file.link = file.link.replace(/^(http:\/\/)/, 'https://')
       }
-      let aria2CmdLine = `aria2c -c -s10 -k1M -x16 --enable-rpc=false -o ${JSON.stringify(file.name)} ${this.getHeader('aria2Cmd')} ${JSON.stringify(file.link)}`
-      let aria2Line = [file.link, this.getHeader('aria2c'), ` out=${file.name}`].join('\n')
+      let aria2CmdLine = `aria2c -c -s10 -k1M -x16 --enable-rpc=false -o ${JSON.stringify(
+        file.name
+      )} ${this.getHeader('aria2Cmd')} ${JSON.stringify(file.link)}`
+      let aria2Line = [
+        file.link,
+        this.getHeader('aria2c'),
+        ` out=${file.name}`
+      ].join('\n')
       const sha1Check = this.getConfigData('sha1Check')
       if (sha1Check) {
         aria2CmdLine += ` --checksum=sha-1=${file.sha1}`
@@ -242,10 +297,18 @@ class Core {
       downloadLinkTxt.push(file.link)
     })
     document.querySelector('#aria2CmdTxt').value = `${aria2CmdTxt.join('\n')}`
-    document.querySelector('#aria2Txt').href = `${prefixTxt}${encodeURIComponent(aria2Txt.join('\n'))}`
-    document.querySelector('#idmTxt').href = `${prefixTxt}${encodeURIComponent(idmTxt.join('\r\n') + '\r\n')}`
-    document.querySelector('#downloadLinkTxt').href = `${prefixTxt}${encodeURIComponent(downloadLinkTxt.join('\n'))}`
-    document.querySelector('#copyDownloadLinkTxt').dataset.link = downloadLinkTxt.join('\n')
+    document.querySelector(
+      '#aria2Txt'
+    ).href = `${prefixTxt}${encodeURIComponent(aria2Txt.join('\n'))}`
+    document.querySelector('#idmTxt').href = `${prefixTxt}${encodeURIComponent(
+      idmTxt.join('\r\n') + '\r\n'
+    )}`
+    document.querySelector(
+      '#downloadLinkTxt'
+    ).href = `${prefixTxt}${encodeURIComponent(downloadLinkTxt.join('\n'))}`
+    document.querySelector(
+      '#copyDownloadLinkTxt'
+    ).dataset.link = downloadLinkTxt.join('\n')
   }
 }
 

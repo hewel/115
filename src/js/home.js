@@ -49,6 +49,7 @@ class Home extends Downloader {
       this.start(Core.getConfigData('interval'), (fileDownloadInfo) => {
         if (this.mode === 'RPC') {
           Core.aria2RPCMode(this.rpcURL, fileDownloadInfo)
+          console.log(this.rpcURL, fileDownloadInfo)
         }
         if (this.mode === 'TXT') {
           Core.aria2TXTMode(fileDownloadInfo)
