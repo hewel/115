@@ -39,6 +39,7 @@
     "autoprefixer": "^9.8.6",
     "cross-env": "^7.0.2",
     "del": "^5.1.0",
+    "eslint": "^7.14.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-node": "^11.1.0",
@@ -68,7 +69,6 @@
     "stylelint-scss": "^3.17.2"
   },
   "dependencies": {
-    "eslint": "^7.14.0",
     "sweetalert2": "^10.8.1"
   }
 }
