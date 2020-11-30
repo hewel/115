@@ -25,7 +25,9 @@ class Home extends Downloader {
   }
 
   initialize () {
-    this.context = document.querySelector('iframe[rel="wangpan"]').contentDocument
+    this.context = document.querySelector(
+      'iframe[rel="wangpan"]'
+    ).contentDocument
     UI.init()
     UI.addMenu(this.context.querySelector('#js_fake_path'), 'beforebegin')
     this.context.querySelector('.right-tvf').style.display = 'block'
@@ -57,7 +59,9 @@ class Home extends Downloader {
         }
         if (this.mode === 'OPEN') {
           for (const f of fileDownloadInfo) {
-            window.open('https://115.com/?ct=play&ac=location&pickcode=' + f.pickcode)
+            window.open(
+              'https://115.com/?ct=play&ac=location&pickcode=' + f.pickcode
+            )
           }
         }
       })
@@ -133,7 +137,7 @@ class Home extends Downloader {
       Core.sendToBackground('fetch', {
         url: `${location.protocol}//webapi.115.com/files/download?pickcode=${file}`,
         options
-      }, (data) => {
+      }).then((data) => {
         const path = data.file_url.match(/.*115.com(\/.*\/)/)[1]
         Core.requestCookies([{ path }]).then((cookies) => {
           data.cookies = cookies
@@ -144,7 +148,7 @@ class Home extends Downloader {
   }
 
   getFiles (files) {
-    const list = Object.keys(files).map(item => this.getFile(item))
+    const list = Object.keys(files).map((item) => this.getFile(item))
     return new Promise((resolve) => {
       Promise.all(list).then((items) => {
         items.forEach((item) => {

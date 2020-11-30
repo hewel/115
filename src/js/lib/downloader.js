@@ -39,13 +39,20 @@ class Downloader {
     }
     if (this.folders.length !== 0) {
       this.completedCount++
-      Core.showToast(`正在获取文件列表... ${this.completedCount}/${this.completedCount + this.folders.length - 1}`, 'inf')
+      Core.showToast(
+        `正在获取文件列表... ${this.completedCount}/${
+          this.completedCount + this.folders.length - 1
+        }`,
+        'inf'
+      )
       const fold = this.folders.pop()
       this.listParameter.search.cid = fold.cate_id
       Core.sendToBackground('fetch', {
-        url: `${this.listParameter.url}${Core.objectToQueryString(this.listParameter.search)}`,
+        url: `${this.listParameter.url}${Core.objectToQueryString(
+          this.listParameter.search
+        )}`,
         options: this.listParameter.options
-      }, (data) => {
+      }).then((data) => {
         setTimeout(() => this.getNextFile(taskId), this.interval)
         const path = fold.path + data.path[data.path.length - 1].name + '/'
         data.data.forEach((item) => {

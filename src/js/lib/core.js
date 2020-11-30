@@ -35,20 +35,22 @@ class Core {
       .join('&')
   }
 
-  async sendToBackground (method, data) {
-    chrome.runtime.sendMessage(
-      {
-        method,
-        data
-      },
-      (success) => {
-        if (success) {
-          return success
-        } else {
-          throw new Error('error')
+  sendToBackground (method, data) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        {
+          method,
+          data
+        },
+        (success) => {
+          if (success) {
+            resolve(success)
+          } else {
+            reject(new Error('error'))
+          }
         }
-      }
-    )
+      )
+    })
   }
 
   showToast (message, type) {
@@ -160,15 +162,14 @@ class Core {
     const { authStr, path } = this.parseURL(rpcPath)
     this.sendToBackground(
       'rpcVersion',
-      this.generateParameter(authStr, path, data),
-      (version) => {
-        if (version) {
-          element.innerText = `Aria2版本为: ${version}`
-        } else {
-          element.innerText = '错误,请查看是否开启Aria2'
-        }
-      }
+      this.generateParameter(authStr, path, data)
     )
+      .then((version) => {
+        element.innerText = `Aria2版本为: ${version}`
+      })
+      .catch(() => {
+        element.innerText = '错误,请查看是否开启Aria2'
+      })
   }
 
   copyText (text) {
@@ -189,9 +190,9 @@ class Core {
   // cookies format  [{"url": "http://pan.baidu.com/", "name": "BDUSS"},{"url": "http://pcs.baidu.com/", "name": "pcsett"}]
   requestCookies (cookies) {
     return new Promise((resolve) => {
-      this.sendToBackground('getCookies', cookies, (value) => {
+      this.sendToBackground('getCookies', cookies).then((value) =>
         resolve(value)
-      })
+      )
     })
   }
 
