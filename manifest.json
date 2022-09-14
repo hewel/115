@@ -9,12 +9,12 @@
       "run_at": "document_end"
     },
     {
-      "js": ["js/jsencrypt.js"],
+      "js": ["js/jsencrypt.js", "js/sweetalert2.all.min.js"],
       "matches": ["*://*.115.com/*"],
       "run_at": "document_start"
     },
     {
-      "css": ["css/style.css"],
+      "css": ["css/style.css", "css/sweetalert2.min.css"],
       "all_frames": true,
       "matches": ["*://*.115.com/*"]
     }
@@ -26,10 +26,12 @@
     "48": "img/logo48.png",
     "128": "img/logo128.png"
   },
-  "web_accessible_resources": [{
-    "resources": ["js/115.js"],
-    "matches": ["*://*.115.com/*"]
-  }],
+  "web_accessible_resources": [
+    {
+      "resources": ["js/115.js"],
+      "matches": ["*://*.115.com/*"]
+    }
+  ],
   "manifest_version": 3,
   "permissions": ["cookies", "storage", "notifications", "scripting"],
   "host_permissions": ["*://*.115.com/*"],

@@ -54,6 +54,7 @@
     "imagemin-pngquant": "^9.0.2",
     "postcss": "^8.4.14",
     "rollup": "^2.74.1",
+    "rome": "0.9.2-next",
     "sass": "^1.52.1",
     "stylelint": "^14.8.3",
     "stylelint-config-sass-guidelines": "^9.0.1",
@@ -61,6 +62,7 @@
     "stylelint-scss": "^4.2.0"
   },
   "dependencies": {
-    "blueimp-md5": "^2.18.0"
+    "blueimp-md5": "^2.18.0",
+    "sweetalert2": "^11.4.32"
   }
 }

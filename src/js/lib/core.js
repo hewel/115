@@ -1,8 +1,13 @@
 import Store from './store'
+import { Modal, Toast } from './modal'
 
 class Core {
   constructor () {
     this.cookies = {}
+    this.modal = Modal()
+    this.toast = Toast()
+
+    document.querySelector('div[class^=fp]').remove()
   }
 
   httpSend ({ url, options }, resolve, reject) {
@@ -37,7 +42,16 @@ class Core {
   }
 
   showToast (message, type) {
-    window.postMessage({ type: 'showToast', data: { message, type } }, location.origin)
+    const IconTypeMap = {
+      inf: 'success',
+      err: 'error',
+      war: 'warning'
+    }
+
+    this.toast.fire({
+      text: message,
+      icon: type ? IconTypeMap[type] : 'info'
+    })
   }
 
   getHashParameter (name) {
@@ -189,23 +203,30 @@ class Core {
       const sha1Check = this.getConfigData('sha1Check')
       const rpcOption = rpcData.params[1]
       const dir = this.getConfigData('downloadPath')
-      if (dir) {
-        rpcOption.dir = dir
-      }
-      if (sha1Check) {
-        rpcOption.checksum = `sha-1=${file.sha1}`
-      }
-      if (options) {
-        for (const key in options) {
-          rpcOption[key] = options[key]
+
+      this.modal.fire({
+        inputValue: dir
+      }).then(({ isConfirmed, value }) => {
+        if (!isConfirmed) { return }
+
+        if (value) {
+          rpcOption.dir = value
         }
-      }
-      this.sendToBackground('rpcData', this.generateParameter(authStr, path, rpcData), (success) => {
-        if (success) {
-          this.showToast('下载成功!赶紧去看看吧~', 'inf')
-        } else {
-          this.showToast('下载失败!是不是没有开启Aria2?', 'err')
+        if (sha1Check) {
+          rpcOption.checksum = `sha-1=${file.sha1}`
         }
+        if (options) {
+          for (const key in options) {
+            rpcOption[key] = options[key]
+          }
+        }
+        this.sendToBackground('rpcData', this.generateParameter(authStr, path, rpcData), (success) => {
+          if (success) {
+            this.showToast('下载成功!赶紧去看看吧~', 'inf')
+          } else {
+            this.showToast('下载失败!是不是没有开启Aria2?', 'err')
+          }
+        })
       })
     })
   }
@@ -233,7 +254,7 @@ class Core {
     })
     document.querySelector('#aria2CmdTxt').value = `${aria2CmdTxt.join('\n')}`
     document.querySelector('#aria2Txt').href = `${prefixTxt}${encodeURIComponent(aria2Txt.join('\n'))}`
-    document.querySelector('#idmTxt').href = `${prefixTxt}${encodeURIComponent(idmTxt.join('\r\n') + '\r\n')}`
+    document.querySelector('#idmTxt').href = `${prefixTxt}${encodeURIComponent(`${idmTxt.join('\r\n')}\r\n`)}`
     document.querySelector('#downloadLinkTxt').href = `${prefixTxt}${encodeURIComponent(downloadLinkTxt.join('\n'))}`
     document.querySelector('#copyDownloadLinkTxt').dataset.link = downloadLinkTxt.join('\n')
   }

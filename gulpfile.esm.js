@@ -48,6 +48,10 @@ const paths = {
     src: ['src/vendor/*.js'],
     dest: 'dist/js/'
   },
+  vendorCss: {
+    src: ['src/vendor/*.css'],
+    dest: 'dist/css/'
+  },
   compress: {
     src: 'dist/**/*',
     dest: 'dist/'
@@ -120,8 +124,8 @@ function copys () {
 }
 
 function copyVendor () {
-  return gulp.src(paths.vendor.src)
-    .pipe(gulp.dest(paths.vendor.dest))
+  return [paths.vendor, paths.vendorCss]
+    .map(({ src, dest }) => () => gulp.src(src).pipe(gulp.dest(dest)))
 }
 
 function clean () {
@@ -140,7 +144,7 @@ export function compress () {
     .pipe(gulp.dest(paths.compress.dest))
 }
 
-const build = gulp.parallel(scripts, styles, images, copys, copyVendor)
+const build = gulp.parallel(scripts, styles, images, copys, ...copyVendor())
 const serve = gulp.series(clean, build, watch)
 const publish = gulp.series(clean, build, compress)
 

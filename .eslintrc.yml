@@ -5,6 +5,7 @@ extends:
   - standard
 globals:
   chrome: true
+  Swal: true
 parserOptions:
   ecmaVersion: latest
   sourceType: module

@@ -57,7 +57,7 @@ class Home extends Downloader {
         }
         if (this.mode === 'OPEN') {
           for (const f of fileDownloadInfo) {
-            window.open('https://115.com/?ct=play&ac=location&pickcode=' + f.pickcode)
+            window.open(`https://115.com/?ct=play&ac=location&pickcode=${f.pickcode}`)
           }
         }
       })
