@@ -4,6 +4,7 @@ specifiers:
   '@rollup/plugin-commonjs': ^22.0.0
   '@rollup/plugin-node-resolve': ^13.3.0
   autoprefixer: ^10.4.7
+  big-integer: ^1.6.51
   blueimp-md5: ^2.18.0
   cross-env: ^7.0.3
   del: ^6.0.0
@@ -37,6 +38,7 @@ specifiers:
   sweetalert2: ^11.4.32
 
 dependencies:
+  big-integer: 1.6.51
   blueimp-md5: 2.19.0
   sweetalert2: 11.4.32
 
@@ -753,6 +755,11 @@ packages:
   /base64-js/1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
     dev: true
+
+  /big-integer/1.6.51:
+    resolution: {integrity: sha512-GPEid2Y9QU1Exl1rpO9B2IPJGHPSupF5GnVIP0blYvNOMer2bTvSWs1jGOUg04hTmu67nmLsQ9TBo1puaotBHg==}
+    engines: {node: '>=0.6'}
+    dev: false
 
   /bin-build/3.0.0:
     resolution: {integrity: sha512-jcUOof71/TNAI2uM5uoUaDq2ePcVBQ3R/qhxAz1rX7UfvduAL/RXD3jXzvn8cVcDJdGVkiR1shal3OH0ImpuhA==}
